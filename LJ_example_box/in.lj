@@ -1,2 +1,49 @@
-# create a box of argon and simulate
+# This line is a comment since it is followed by the sign #
+log logfile1.txt 
 
+units real
+dimension 3
+atom_style atomic
+boundary p p p
+
+pair_style lj/cut 12.0
+
+lattice fcc 4.5
+
+#create a 6nm x 6nm x 6nm box
+region system block -30 30 -30 30 -30 30 units box
+
+create_box 2 system
+create_atoms 2 region system
+
+# 2 different atom types for argon, just for visualization purposes
+mass 1 72.06112
+mass 2 72.06112
+
+pair_coeff * * 0.23838 3.4
+
+timestep 5.0
+neighbor 2.0 bin
+neigh_modify delay 0 every 1
+
+fix 1 all nvt temp 89 89 500
+
+thermo 10
+thermo_style one
+thermo_modify flush yes norm yes
+
+minimize 1.0e-2 1.0e-4 100 500
+
+velocity all create 89 4928459 rot yes dist gaussian
+run 0                             # temperature may not be 89K
+velocity all scale 89         # now it should be
+
+reset_timestep 0
+run 1000
+
+log logfile2.txt
+reset_timestep 0
+
+dump 1 all xyz 100 dump.xyz
+
+run 5000
